@@ -1,0 +1,526 @@
+/* ============================================================
+   App.css — ebook reader styles
+   ============================================================ */
+
+/* ---- Library / Bookshelf ----------------------------------------- */
+.library {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
+.library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+
+.library-header h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.library-empty {
+  text-align: center;
+  padding: 100px 0;
+  color: var(--text);
+}
+
+.library-empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.library-hint {
+  font-size: 13px;
+  opacity: 0.6;
+  margin-top: 8px;
+}
+
+/* ---- Bookshelf grid --------------------------------------------- */
+.bookshelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 24px 20px;
+}
+
+.book-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.15s;
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+}
+
+.book-cover-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow:
+    2px 3px 8px rgba(0, 0, 0, 0.18),
+    0 1px 3px rgba(0, 0, 0, 0.12);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.book-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Fallback when no cover image is available */
+.book-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  text-align: center;
+  background: linear-gradient(145deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 60%, #000) 100%);
+  color: #fff;
+}
+
+.book-cover-title {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-cover-author {
+  font-size: 11px;
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Title & author below cover */
+.book-info {
+  width: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.book-info-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-info-author {
+  font-size: 11px;
+  color: var(--text);
+  opacity: 0.7;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- Add-book card ---------------------------------------------- */
+.book-add-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--border);
+  box-shadow: none;
+  background: transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.book-card-add:hover .book-add-cover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.book-add-icon {
+  font-size: 40px;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.45;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.book-card-add:hover .book-add-icon {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.book-add-spinner {
+  font-size: 28px;
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* On touch devices, disable sticky hover highlights */
+@media (hover: none) {
+  .book-card:hover {
+    transform: none;
+  }
+  .book-card-add:hover .book-add-cover {
+    border-color: var(--border);
+    background: transparent;
+  }
+  .book-card-add:hover .book-add-icon {
+    opacity: 0.45;
+    color: var(--text);
+  }
+}
+
+/* ---- Buttons ---------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-danger {
+  color: #e53e3e;
+  border-color: #e53e3e40;
+}
+
+.btn-danger:hover {
+  background: #e53e3e18;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+/* ---- Reader ----------------------------------------------------- */
+.reader {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.reader-theme-light {
+  --bg: #ffffff;
+  --text: #6b6375;
+  --text-h: #1a1a1a;
+  --border: #e5e4e7;
+  --accent: #6366f1;
+  --accent-bg: rgba(99, 102, 241, 0.1);
+  --accent-border: rgba(99, 102, 241, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.reader-theme-dark {
+  --bg: #1e1e1e;
+  --text: #9ca3af;
+  --text-h: #d4d4d4;
+  --border: #2e303a;
+  --accent: #818cf8;
+  --accent-bg: rgba(129, 140, 248, 0.15);
+  --accent-border: rgba(129, 140, 248, 0.5);
+  --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.reader-theme-sepia {
+  --bg: #f4ecd8;
+  --text: #8b7b6b;
+  --text-h: #5b4636;
+  --border: #d4c4a8;
+  --accent: #a0522d;
+  --accent-bg: rgba(160, 82, 45, 0.1);
+  --accent-border: rgba(160, 82, 45, 0.5);
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+/* ---- Heatmap bar ------------------------------------------------ */
+.heatmap-bar {
+  display: flex;
+  height: 6px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.heatmap-segment {
+  height: 100%;
+  transition: background 0.3s;
+}
+
+.heatmap-current {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+}
+
+/* ---- Toolbar ---------------------------------------------------- */
+.reader-toolbar {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 12px;
+  gap: 4px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 13px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.reader-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reader-toolbar-details {
+  justify-content: space-between;
+  opacity: 0.7;
+  font-size: 12px;
+}
+
+.reader-page {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reader-chapter {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.reader-times {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.reader-eta {
+  white-space: nowrap;
+}
+
+/* ---- Viewport --------------------------------------------------- */
+.reader-viewport {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  position: relative;
+}
+
+.reader-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reader-epub {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  /* Ensure epub.js gets a clean integer-pixel height for column layout */
+  contain: strict;
+}
+
+/* Invisible tap/hold zones for page turning */
+.reader-tap-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: default;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.reader-loading,
+.reader-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.reader-error {
+  color: #e53e3e;
+}
+
+/* ---- Settings panel --------------------------------------------- */
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.settings-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  min-width: 280px;
+  max-width: 340px;
+  box-shadow: var(--shadow);
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto;
+}
+
+.settings-panel h3 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: var(--text-h);
+}
+
+/* Compact row used by all settings */
+.s-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.s-row:last-of-type {
+  border-bottom: none;
+}
+
+.s-label {
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.s-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.s-ctrl button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.s-ctrl button:hover {
+  background: var(--accent-bg);
+}
+
+.s-val {
+  min-width: 40px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.s-row select {
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+}
+
+.settings-done {
+  margin-top: 12px;
+  width: 100%;
+  justify-content: center;
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.s-danger {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+}
