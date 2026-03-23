@@ -25,8 +25,8 @@ const NUM_BINS = 200; // granularity — 0.5% each
  *   wordsPerBin = wordCount / NUM_BINS
  *   minPace     = (wordsPerBin / MAX_WPM) * 60
  */
-const MAX_WPM = 300;
-const MIN_WPM = 30;   // slower than this → reader was idle / distracted
+const MAX_WPM = 400;
+const MIN_WPM = 100;   // slower than this → reader was idle / distracted
 const DEFAULT_WPM = 200; // fallback pace when no reading data is available yet
 
 /* ------------------------------------------------------------------ */
@@ -94,6 +94,14 @@ export function recordPageTime(stats, startPct, endPct, seconds) {
     const wordsRead = wordsPerBin * count;
     const minutes = seconds / 60;
     const wpm = wordsRead / minutes;
+
+    console.log('[Stats]', {
+      seconds: seconds.toFixed(1),
+      bins: `${lo}-${hi} (${count})`,
+      wpm: Math.round(wpm),
+      perBin: perBin.toFixed(2),
+      accepted: wpm <= MAX_WPM && wpm >= MIN_WPM,
+    });
 
     if (wpm > MAX_WPM || wpm < MIN_WPM) {
       // Outside realistic reading range — discard this observation
@@ -177,9 +185,11 @@ function currentPace(stats) {
   }
 
   // Floor at MAX_WPM so estimates are never unrealistically short
+  // Ceiling at MIN_WPM so estimates are never unrealistically long
   if (wordsPerBin > 0) {
     const minPace = (wordsPerBin / MAX_WPM) * 60;
-    return Math.max(pace, minPace);
+    const maxPace = (wordsPerBin / MIN_WPM) * 60;
+    return Math.min(Math.max(pace, minPace), maxPace);
   }
   return pace;
 }
@@ -229,21 +239,41 @@ export function formatTime(totalSeconds) {
  * Works well on e-ink (pure lightness gradient, no hue dependency).
  */
 export function heatmapData(stats, theme = 'light') {
-  const maxTime = Math.max(...stats.bins, 0.001);
+  /*
+   * Use the WPM range [MIN_WPM, MAX_WPM] to derive the expected
+   * seconds-per-bin bounds, giving a fixed & meaningful color scale.
+   * Falls back to max-bin normalisation when wordCount is unknown.
+   */
+  const wc = stats.wordCount || 0;
+  const wordsPerBin = wc > 0 ? wc / NUM_BINS : 0;
+
+  let fastTime, slowTime;
+  if (wordsPerBin > 0) {
+    fastTime = (wordsPerBin / MAX_WPM) * 60; // seconds per bin at fastest pace
+    slowTime = (wordsPerBin / MIN_WPM) * 60; // seconds per bin at slowest pace
+  } else {
+    // No word count yet — fall back to relative normalisation
+    const maxBin = Math.max(...stats.bins, 0.001);
+    fastTime = 0;
+    slowTime = maxBin;
+  }
 
   // Each theme defines: unread color (matches background), and lightness range [fast, slow]
   const palettes = {
-    light: { unread: '#ffffff',  hue: 0,   sat: 0,  fastL: 100, slowL: 10 },
+    light: { unread: '#ffffff',  hue: 0,   sat: 0,  fastL: 88, slowL: 10 },
     dark:  { unread: '#1e1e1e',  hue: 0,   sat: 0,  fastL: 12, slowL: 95 },
-    sepia: { unread: '#f4ecd8',  hue: 35,  sat: 35, fastL: 90, slowL: 20 },
+    sepia: { unread: '#f4ecd8',  hue: 35,  sat: 35, fastL: 85, slowL: 20 },
   };
   const p = palettes[theme] || palettes.light;
+  const range = slowTime - fastTime;
 
   return stats.bins.map((seconds, bin) => {
     if (seconds <= 0) {
       return { bin, seconds, color: p.unread };
     }
-    const ratio = seconds / maxTime;
+    const ratio = range > 0
+      ? Math.min(1, Math.max(0, (seconds - fastTime) / range))
+      : 0.5;
     const lightness = Math.round(p.fastL + (p.slowL - p.fastL) * ratio);
     return { bin, seconds, color: `hsl(${p.hue}, ${p.sat}%, ${lightness}%)` };
   });

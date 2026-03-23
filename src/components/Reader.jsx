@@ -309,18 +309,19 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
       if (!p) return;
       const elapsed = (Date.now() - p.time) / 1000;
 
-      /* If idle timeout reached, flush capped time and stop timing */
+      /* If idle timeout reached, flush the capped time and stop timing.
+         The full duration up to IDLE_TIMEOUT is recorded as a single
+         observation so the WPM validity gate sees a realistic pace. */
       if (elapsed >= IDLE_TIMEOUT) {
         flushPageTime();
         /* Don't restart — user is idle. Timer resumes on next page turn. */
         return;
       }
 
-      if (elapsed >= 2) {
-        flushPageTime();
-        /* Restart for the same page */
-        startPageTimer(p.startPct, p.endPct);
-      }
+      /* Otherwise do nothing — we only record stats on actual page turns
+         (in the 'relocated' handler) or on idle timeout. Flushing partial
+         time here would create short-duration observations that the WPM
+         gate would (correctly) reject as unrealistically fast. */
     }, TICK_INTERVAL * 5);
 
     return () => clearInterval(tickRef.current);

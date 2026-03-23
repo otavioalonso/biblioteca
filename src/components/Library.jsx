@@ -1,19 +1,90 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import setThemeColor from '../utils/themeColor';
+
+/* ---- Generative background: grid of softly varying squares ------- */
+function drawBackground(canvas) {
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  ctx.scale(dpr, dpr);
+
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  const cellSize = 3;
+  const cols = Math.ceil(w / cellSize) + 1;
+  const rows = Math.ceil(h / cellSize) + 1;
+
+  /* Seeded-ish random from position so it's stable across redraws
+     but still looks organic */
+  const rand = () => Math.random();
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const r = rand();
+      const x = col * cellSize;
+      const y = row * cellSize;
+
+      if (isDark) {
+        /* Dark mode: very subtle lighter squares on #16171d */
+        const l = 8 + r * 6;       // lightness 8–14%
+        const a = 0.3 + r * 0.4;   // alpha 0.3–0.7
+        ctx.fillStyle = `hsla(230, 8%, ${l}%, ${a})`;
+      } else {
+        /* Light mode: soft warm/cool gray squares on white */
+        const hue = 220 + r * 40;  // blue-ish to purple-ish
+        const sat = 5 + r * 15;
+        const l = 88 + r * 10;     // lightness 88–98%
+        ctx.fillStyle = `hsl(${hue}, ${sat}%, ${l}%)`;
+      }
+
+      ctx.fillRect(x, y, cellSize, cellSize);
+    }
+  }
+
+  /* Soft radial vignette to fade edges */
+  const cx = w / 2, cy = h / 2;
+  const radius = Math.max(w, h) * 0.7;
+  const bg = isDark ? '22, 23, 29' : '255, 255, 255';
+  const grad = ctx.createRadialGradient(cx, cy, radius * 0.3, cx, cy, radius);
+  grad.addColorStop(0, `rgba(${bg}, 0)`);
+  grad.addColorStop(1, `rgba(${bg}, 0.85)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
 
 export default function Library({ books, covers, onImport, onOpen }) {
   const fileRef = useRef();
+  const canvasRef = useRef();
   const [importingCount, setImportingCount] = useState(0);
 
   /* Set PWA status-bar color to match library background
      (follows system light/dark preference) */
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const update = () => setThemeColor(mq.matches ? 'library-dark' : 'light');
+    const update = () => setThemeColor(mq.matches ? 'library-dark' : 'library-light');
     update();
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
+
+  /* Draw & redraw generative background */
+  const paint = useCallback(() => {
+    if (canvasRef.current) drawBackground(canvasRef.current);
+  }, []);
+
+  useEffect(() => {
+    paint();
+    window.addEventListener('resize', paint);
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener('change', paint);
+    return () => {
+      window.removeEventListener('resize', paint);
+      mq.removeEventListener('change', paint);
+    };
+  }, [paint]);
 
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
@@ -32,9 +103,7 @@ export default function Library({ books, covers, onImport, onOpen }) {
 
   return (
     <div className="library">
-      {/* <header className="library-header">
-        <h1>📚 Reader</h1>
-      </header> */}
+      <canvas ref={canvasRef} className="library-bg" aria-hidden="true" />
       <input
         ref={fileRef}
         type="file"

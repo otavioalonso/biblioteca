@@ -17,3 +17,15 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     });
   });
 }
+
+/* Lock orientation to portrait when running as an installed PWA */
+try {
+  const isStandalone =
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone;
+  if (isStandalone && screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('portrait').catch(() => {});
+  }
+} catch (_) {
+  /* orientation lock not supported — ignored */
+}

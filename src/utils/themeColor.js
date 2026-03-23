@@ -9,6 +9,7 @@ const THEME_COLORS = {
   sepia: '#f4ecd8',
   // Library uses the base CSS dark background
   'library-dark': '#16171d',
+  'library-light': '#ffffff',
 };
 
 export default function setThemeColor(theme) {

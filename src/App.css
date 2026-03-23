@@ -4,12 +4,22 @@
 
 /* ---- Library / Bookshelf ----------------------------------------- */
 .library {
+  position: relative;
   max-width: 960px;
   margin: 0 auto;
   padding: 40px 24px;
   min-height: 100vh;
   min-height: 100dvh;
   box-sizing: border-box;
+}
+
+.library-bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .library-header {
@@ -44,6 +54,8 @@
 
 /* ---- Bookshelf grid --------------------------------------------- */
 .bookshelf-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 24px 20px;
@@ -310,7 +322,7 @@
 }
 
 .heatmap-current {
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 
 /* ---- Toolbar ---------------------------------------------------- */
