@@ -29,3 +29,23 @@ try {
 } catch (_) {
   /* orientation lock not supported — ignored */
 }
+
+/* Pre-load all Google Fonts so the service worker caches the .woff2 files.
+   document.fonts.load() triggers a real network fetch for each family,
+   which the SW intercepts and stores for offline use. */
+const PRELOAD_FONTS = [
+  'EB Garamond',
+  'Baskervville',
+  'Literata',
+  'Lora',
+  'Ovo',
+  'Lato',
+  'Atkinson Hyperlegible',
+];
+if (document.fonts) {
+  PRELOAD_FONTS.forEach((family) => {
+    document.fonts.load(`400 1em "${family}"`).catch(() => {});
+    document.fonts.load(`700 1em "${family}"`).catch(() => {});
+    document.fonts.load(`italic 400 1em "${family}"`).catch(() => {});
+  });
+}

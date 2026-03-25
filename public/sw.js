@@ -68,10 +68,15 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cached) => {
       const fetchPromise = fetch(request)
         .then((response) => {
-          // Only cache successful same-origin responses
-          if (response.ok && request.url.startsWith(self.location.origin)) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          // Cache successful same-origin and Google Fonts responses
+          if (response.ok) {
+            const isOwn = request.url.startsWith(self.location.origin);
+            const isGoogleFont = request.url.startsWith('https://fonts.googleapis.com')
+              || request.url.startsWith('https://fonts.gstatic.com');
+            if (isOwn || isGoogleFont) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
           }
           return response;
         })

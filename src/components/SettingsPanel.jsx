@@ -3,16 +3,15 @@ export default function SettingsPanel({ settings, onChange, onClose, onDelete, o
 
   const FONTS = [
     { value: 'default', label: 'Default' },
-    { value: 'Georgia, serif', label: 'Georgia' },
-    { value: "'Times New Roman', Times, serif", label: 'Times New Roman' },
-    { value: "'Palatino Linotype', Palatino, serif", label: 'Palatino' },
-    { value: "'Bookman Old Style', serif", label: 'Bookman' },
-    { value: "system-ui, 'Segoe UI', Roboto, sans-serif", label: 'System Sans' },
-    { value: "'Helvetica Neue', Helvetica, Arial, sans-serif", label: 'Helvetica' },
-    { value: "'Verdana', Geneva, sans-serif", label: 'Verdana' },
-    { value: "'Trebuchet MS', sans-serif", label: 'Trebuchet' },
-    { value: "ui-monospace, Consolas, 'Courier New', monospace", label: 'Monospace' },
-    { value: "'OpenDyslexic', 'Comic Sans MS', sans-serif", label: 'OpenDyslexic' },
+    // ── Serifs (Google Fonts) ──
+    { value: "'EB Garamond', 'Garamond', Georgia, serif", label: 'EB Garamond' },
+    { value: "'Baskervville', 'Baskerville', Georgia, serif", label: 'Baskervville' },
+    { value: "'Literata', Georgia, serif", label: 'Literata' },
+    { value: "'Lora', Georgia, serif", label: 'Lora' },
+    { value: "'Ovo', Georgia, serif", label: 'Ovo' },
+    // ── Sans-serifs (Google Fonts) ──
+    { value: "'Lato', 'Helvetica Neue', sans-serif", label: 'Lato' },
+    { value: "'Atkinson Hyperlegible', sans-serif", label: 'Atkinson' },
   ];
 
   const Stepper = ({ label, value, display, onDec, onInc }) => (

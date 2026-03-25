@@ -33,6 +33,7 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
   const resizeObserverRef = useRef(null);
   const pageStartRef = useRef(null);    // { time, startPct, endPct }
   const holdRef = useRef(null);         // long-press repeat state
+  const lastTapRef = useRef(0);         // timestamp of last tap (for double-tap detection)
 
   const [stats, setStats] = useState(() => createBookStats(bookId));
   const [currentPct, setCurrentPct] = useState(0);
@@ -96,6 +97,28 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
           gap: 0,
         });
         renditionRef.current = rendition;
+
+        /* Inject Google Fonts @font-face rules into each epub.js iframe
+           as an inline <style> so fonts are available synchronously when
+           the chapter renders (avoids FOUT / fallback on chapter change).
+
+           We fetch the Google Fonts CSS once (from cache/SW if offline),
+           then inject the raw @font-face text into every new content doc. */
+        const GOOGLE_FONTS_URL =
+          'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Baskervville:ital,wght@0,400..700;1,400..700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Literata:ital,opsz,wght@0,7..72,200..900;1,7..72,200..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Ovo&display=swap';
+        let fontFaceCss = '';
+        fetch(GOOGLE_FONTS_URL)
+          .then((r) => r.text())
+          .then((css) => { fontFaceCss = css; })
+          .catch(() => { /* fonts will use fallbacks if fetch fails */ });
+
+        rendition.hooks.content.register((contents) => {
+          if (!fontFaceCss) return;
+          const doc = contents.document;
+          const style = doc.createElement('style');
+          style.textContent = fontFaceCss;
+          doc.head.appendChild(style);
+        });
 
         /* Snap rendition to integer pixel dimensions so CSS columns
            don't clip the last line of text on a page. */
@@ -372,7 +395,11 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
   /* ---- Toolbar visibility ----------------------------------------- */
   const [showToolbar, setShowToolbar] = useState(false);
 
-  /* Determine nav direction from pointer position */
+  /* Determine nav direction from pointer position.
+     Navigation zones are restricted to the top 30% of the screen.
+     Top 30%, left 25%  → prev
+     Top 30%, right 75% → next
+     Bottom 70%         → none (safe grip area; double-tap for toolbar) */
   const getNavAction = useCallback((e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -380,9 +407,10 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
     const pctX = x / rect.width;
     const pctY = y / rect.height;
 
-    if (pctY > 0.88) return 'toolbar';
-    if (pctX < 0.25) return 'prev';
-    return 'next';
+    if (pctY <= 0.30) {
+      return pctX < 0.25 ? 'prev' : 'next';
+    }
+    return 'none';
   }, []);
 
   const cancelHold = useCallback(() => {
@@ -394,7 +422,7 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
 
   const handlePointerDown = useCallback((e) => {
     const action = getNavAction(e);
-    if (action === 'toolbar') return; // toolbar toggle only on tap
+    if (action === 'none') return; // outside nav zone — ignore
 
     const navFn = action === 'prev' ? prev : next;
 
@@ -423,12 +451,17 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
     };
   }, [getNavAction]);
 
+  const DOUBLE_TAP_MS = 350; // max interval between taps to count as double-tap
+
   const handlePointerUp = useCallback((e) => {
     if (!holdRef.current) {
-      /* Pointer down was on toolbar zone — handle as tap */
-      const action = getNavAction(e);
-      if (action === 'toolbar') {
+      /* Pointer down was outside nav zone — check for double-tap → toolbar */
+      const now = Date.now();
+      if (now - lastTapRef.current < DOUBLE_TAP_MS) {
+        lastTapRef.current = 0;
         setShowToolbar((v) => !v);
+      } else {
+        lastTapRef.current = now;
       }
       return;
     }
@@ -438,8 +471,7 @@ export default function Reader({ bookId, bookMeta, onClose, onDelete, onResetDat
     cancelHold();
 
     if (!wasFired) {
-      /* Short tap — navigate once */
-      setShowToolbar(false);
+      /* Short tap in nav zone — navigate once */
       if (action === 'prev') prev();
       else next();
     }
